@@ -10,7 +10,8 @@
 #include <pthread.h>
 
 #define BUFF 1024
-
+char key[]="111"; //chat all
+char key1[]="100"; // chat Gr A
 void *recvmg(void *sock)
 {
 	int their_sock = *((int *)sock);
@@ -19,10 +20,12 @@ void *recvmg(void *sock)
 	while ((len = recv(their_sock, msg, BUFF, 0)) > 0)
 	{
 		msg[len] = '\0';
-		fputs(msg, stdout);
+		printf("%s \n", msg);
+		//bzero(&msg,sizeof(msg));
 		memset(msg, '\0', sizeof(msg));
+		fflush(stdout);
 	}
-}
+};
 int main(int argc, char *argv[])
 {
 	struct sockaddr_in their_addr;
@@ -45,29 +48,38 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 	char username[BUFF], var[BUFF];
+	memset(username, '\0', BUFF);
+	memset(var, '\0', sizeof(BUFF));
 	printf("Enter your username: ");
-	scanf("%s", var);
+	fgets(var,BUFF,stdin);
+	var[strlen(var)-1]= '\0';
 	write(my_sock, var, strlen(var));
 	// Loi o day: Gui thua ki tu sau username
-	// printf("%s",var);
+	
 	strcpy(username, var);
-	bzero(&var, sizeof(var));
+	printf("%s",var);
+	memset(var,'\0',sizeof(BUFF));
 
 	inet_ntop(AF_INET, (struct sockaddr *)&their_addr, ip, INET_ADDRSTRLEN);
 	printf(" 1. Chat All \n");
 	printf(" 2. Chat Group\n");
 	printf(" 3. Chat peer to peer\n");
 	printf(" Enter your choose: ");
-	int key;
-	scanf("%d", &key); // chon kieu chat
+	int choose;
+	scanf("%d", &choose); // chon kieu chat
 	char msg[BUFF];
-	if (key == 1)
+	memset(msg, '\0', sizeof(BUFF));
+	if (choose == 1)
 	{
+
+		int i=0;
 		char res[BUFF];
 		char offline[BUFF];
-		pthread_create(&recvt, NULL, recvmg, &my_sock);
+		pthread_create(&recvt, NULL,recvmg, &my_sock);
+		fflush(stdin);
 		while (fgets(msg, BUFF, stdin) > 0)
 		{
+			msg[strlen(msg) - 1] = '\0';
 			strcpy(res, username);
 			strcat(res, ": ");
 			strcat(res, msg);
@@ -82,46 +94,58 @@ int main(int argc, char *argv[])
 			{
 				int len;
 				//send mess
-				len = write(my_sock, res, strlen(res));
-				if (len < 0)
-				{
-					perror("message not sent");
-					exit(1);
+				if(i>=1){
+					len = write(my_sock, res, strlen(res));
+					if (len < 0)
+					{
+						perror("message not sent");
+						exit(1);
+					}
+
 				}
+				i++;
 				memset(msg, '\0', sizeof(msg));
 				memset(res, '\0', sizeof(res));
 			}
 		}
 		pthread_join(recvt, NULL);
 	}
-	if (key == 2)
+	if (choose == 2)
 	{
-		int x;
+		int x;// chon nhom
 		int i = 0;
+		char res[BUFF];
+		char offline[BUFF];
+		char mess[BUFF];
 		printf("1.GroupA \n");
 		printf("2.GroupB \n");
 		scanf("%d", &x);
 		//memset(key,'\0', sizeof(key));
 		if (x == 1)
 		{
+			write(my_sock, key1, strlen(key1));
+			pthread_create(&recvt, NULL, recvmg, &my_sock);
 			while (1)
 			{
 				
-				char mess[BUFF];
 				memset(msg, '\0', sizeof(msg));
 				memset(mess, '\0', sizeof(mess));
 				fflush(stdin);
 				fgets(msg, BUFF, stdin);
 				msg[strlen(msg)-1]= '\0';
-				printf("%s",mess);
+				//printf("%s",mess);
 				strcpy(mess, msg);
-				strcat(mess, "100");
-
+				strcpy(res, username);
+				strcat(res, ": ");
+				strcat(res, mess);
+				strcat(res, "100");
+				//printf("res: %s", res);
 				if (i >= 1)
-					write(my_sock, mess, strlen(mess));
+					write(my_sock, res, strlen(res));
 				
 				i++;
 			}
+			pthread_join(recvt, NULL);
 		}
 	}
 
