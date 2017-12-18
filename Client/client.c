@@ -52,11 +52,19 @@ void sentFile(char *msg, int connfd)
 		}
 	}
 }
-void recvfile(void *sock){
+void recvfile(char *msg,void *sock){
 	int their_sock = *((int *)sock);
+	char name[BUFF];
+	int j=0;
+	for (int i = 5; i < (strlen(msg)); i++) // bo di cai duoi 100
+	{
+		name[j] = msg[i];
+		j++;
+	}
+	name[strlen(name)] = '\0';
 	int bytesReceived;
 	char buff[256];
-	FILE *file = fopen("down", "w+");
+	FILE *file = fopen(name, "w+");
 
 	while ((bytesReceived = recv(their_sock, buff, sizeof(buff), 0)) > 0)
 	{
@@ -81,12 +89,14 @@ void *recvmg(void *sock)
 	{
 		msg[len] = '\0';
 		if((strstr(msg, "---f:"))!=NULL){
-			recvfile(&their_sock);
+			recvfile(msg,&their_sock);
 		}
+		else{
 			printf("%s \n", msg);
 			//bzero(&msg,sizeof(msg));
 			memset(msg, '\0', sizeof(msg));
 			fflush(stdout);
+		}		
 	
 	}
 }
