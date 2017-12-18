@@ -189,11 +189,18 @@ void * recvmg(void *sock)
 					if (strcmp(msg, key) == 0)
 						continue;
 					if (strstr(msg, "FILE:") != NULL)
-					{	//up file tu client len server
-						pthread_mutex_lock(&mutex);
+					{	//up file tu client len seFrver
+						sendtoall(msg,cl.sockno);
+						char name[BUFF];
+						int j=0;
+						for (int i = 5; i < (strlen(msg)); i++) // bo di cai duoi 100
+						{
+							name[j] = msg[i];
+							j++;
+						}
 						int bytesReceived;
 						char buff[256];
-						FILE *file = fopen("up", "w+");
+						FILE *file = fopen(name, "w+");
 
 						while ((bytesReceived = recv(cl.sockno, buff, sizeof(buff), 0)) > 0)
 						{
@@ -206,12 +213,12 @@ void * recvmg(void *sock)
 							}
 						}
 						fclose(file);
-						pthread_mutex_unlock(&mutex);
+					
 					}
 					else{
 						if (strstr(msg, "---f:") != NULL)
 						{
-							write(cl.sockno, msg, strlen(msg) );
+							write(cl.sockno, msg, strlen(msg));
 							int j = 0;
 							char name[BUFF];
 							bzero(&name, BUFF);
@@ -249,10 +256,13 @@ void * recvmg(void *sock)
 								}
 							}
 						}
+						else{
+							sendtoall(msg, cl.sockno);
+							memset(msg, '\0', sizeof(msg));
+							fflush(stdout);
+						}
 					}
-					sendtoall(msg, cl.sockno);
-					memset(msg, '\0', sizeof(msg));
-					fflush(stdout);
+					
 				}
 					
 		
